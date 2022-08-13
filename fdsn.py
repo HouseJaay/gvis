@@ -8,6 +8,7 @@ from scipy import signal
 import numpy as np
 import warnings
 import sys
+import time
 
 
 def req_sta(fout, baseurl, **params):
@@ -35,6 +36,7 @@ def req_sta_df(baseurl, **params):
 
 
 def _req_url(url, verbose=True, out_format='text', params={}):
+    time.sleep(0.01)
     r = requests.get(url, params=params)
     if verbose:
         print("Connecting to:")
@@ -120,10 +122,15 @@ def req_conti(service, fpath, **params):
 
 def pre_process_conti(st, ds_factor, path_resp_xml):
     pre_filt = [0.02, 0.025, 2, 2.5]
-    for ii in range(len(st)):
-        st[ii].data = np.float64(st[ii].data)
-        st[ii].data = signal.detrend(st[ii].data,type='constant')
-        st[ii].data = signal.detrend(st[ii].data,type='linear')
+    try:
+        for ii in range(len(st)):
+            st[ii].data = np.float64(st[ii].data)
+            st[ii].data = signal.detrend(st[ii].data,type='constant')
+            st[ii].data = signal.detrend(st[ii].data,type='linear')
+    except ValueError as e:
+        print(st, file=sys.stderr)
+        print(e, file=sys.stderr)
+        return obspy.Stream()
     if len(st) > 1:
         try:
             st.merge(method=1, fill_value=np.nan)
