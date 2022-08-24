@@ -37,7 +37,12 @@ def req_sta_df(baseurl, **params):
 
 def _req_url(url, verbose=True, out_format='text', params={}):
     time.sleep(0.01)
-    r = requests.get(url, params=params)
+    try:
+        r = requests.get(url, params=params)
+    except requests.exceptions.RequestException as e:
+        print(e, "\nTry Again")
+        time.sleep(0.2)
+        r = requests.get(url, params=params)
     if verbose:
         print("Connecting to:")
         print(r.url)
